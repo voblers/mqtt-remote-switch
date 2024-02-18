@@ -1,4 +1,4 @@
-FROM python:latest
+FROM python:3-alpine
 
 # Set args for the program
 ARG MQTT_HOSTNAME=mqtt
@@ -18,6 +18,6 @@ RUN pip install paho-mqtt
 WORKDIR app
 
 # Copy onver the python script
-COPY ToggleSwitch.py .
+COPY src/ToggleSwitch.py .
 
-CMD python ToggleSwitch.py
+CMD python -u ToggleSwitch.py
