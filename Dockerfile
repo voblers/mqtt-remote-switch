@@ -18,6 +18,6 @@ RUN pip install paho-mqtt
 WORKDIR app
 
 # Copy onver the python script
-COPY ToogleSwitch.py .
+COPY ToggleSwitch.py .
 
-CMD python ToogleSwitch.py
+CMD python ToggleSwitch.py
