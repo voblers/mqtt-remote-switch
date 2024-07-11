@@ -56,6 +56,10 @@ def signal_handler(sig, frame):
   mqttc.disconnect()
   sys.exit(0)
 
+def on_disconnect(client, userdata, rc):
+  if rc != 0:
+    print("Unexpected MQTT disconnection. Will auto-reconnect")
+
 def process_click(client, userdata, message):
   payload = json.loads(message.payload)
   action = payload["action"]
@@ -68,6 +72,9 @@ def process_click(client, userdata, message):
 
 # Process SIGINT
 signal.signal(signal.SIGINT, signal_handler)
+
+# Process disconnect
+mqttc.on_disconnect = on_disconnect
 
 # Add message callback to the remote actions
 for topic in remote_topic_list:
