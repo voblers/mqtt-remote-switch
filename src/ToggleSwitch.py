@@ -27,16 +27,27 @@ import sys
 import os
 import signal
 import json
+import logging
 import paho.mqtt.client as mqtt
 
+# Configure logging
+LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO').upper()
+_numeric_level = getattr(logging, LOG_LEVEL, logging.INFO)
+logging.basicConfig(level=_numeric_level, format='%(asctime)s.%(msecs)03d %(levelname)s [%(name)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+logger = logging.getLogger(__name__)
+
+# MQTT connection settings (required env vars)
 host = os.environ['MQTT_HOSTNAME']
 port = int(os.environ['MQTT_PORT'])
 user = os.environ['MQTT_USERNAME']
 password = os.environ['MQTT_PASSWORD']
 
 # Set user, password
+
 mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 mqttc.username_pw_set(user, password)
+# Let paho log to our logger too
+mqttc.enable_logger(logger)
 
 # Connect to MQTT
 mqttc.connect(host, port, 60)
@@ -52,7 +63,7 @@ switch_topic = os.environ['MQTT_SWITCH_TOPIC']
 switch_topic_list = switch_topic.split(",")
 
 def signal_handler(sig, frame):
-  print("Exiting program and closing mqtt connection...")
+  logger.info("Exiting program and closing mqtt connection...")
   mqttc.disconnect()
   sys.exit(0)
 
@@ -67,7 +78,7 @@ def on_disconnect(*args):
     return
 
   if rc != 0:
-    print("Unexpected MQTT disconnection. Will auto-reconnect")
+    logger.warning("Unexpected MQTT disconnection. Will auto-reconnect")
 
 def process_click(client, userdata, message):
   payload = json.loads(message.payload)
@@ -75,9 +86,9 @@ def process_click(client, userdata, message):
 
   if action in remote_action_list:
     for topic in switch_topic_list:
-      # Toogle the switch
-      client.publish(topic, switch_action);
-      print("Publish '" + switch_action + "' with topic '" + topic + "'")
+      # Toggle the switch
+      client.publish(topic, switch_action)
+      logger.info("Publish '%s' with topic '%s'", switch_action, topic)
 
 # Process SIGINT
 signal.signal(signal.SIGINT, signal_handler)
@@ -87,7 +98,7 @@ mqttc.on_disconnect = on_disconnect
 
 # Add message callback to the remote actions
 for topic in remote_topic_list:
-  print("Subscribe to topic '" + topic + "'")
+  logger.info("Subscribe to topic '%s'", topic)
   mqttc.on_message = process_click
   mqttc.subscribe(topic, 0)
 
