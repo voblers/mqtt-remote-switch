@@ -19,10 +19,16 @@ Ensure you have Docker installed on your system.
 
 The Docker image is configured to run the MQTT Toggle Switch application. It includes the necessary dependencies and sets up the environment for the Python script.
 
-To build the Docker image:
+To build amd64 Docker image, use the following command:
 
 ```bash
-docker build -t mqtt-toggle-switch .
+docker buildx build --platform linux/amd64 --load -t mqtt-toggle-switch:amd64 .
+```
+
+To build arm64 Docker image, use the following command:
+
+```bash
+docker buildx build --platform linux/arm64 --load -t mqtt-toggle-switch:arm64 .
 ```
 
 To run the Docker container:

@@ -56,7 +56,16 @@ def signal_handler(sig, frame):
   mqttc.disconnect()
   sys.exit(0)
 
-def on_disconnect(client, userdata, rc):
+def on_disconnect(*args):
+  # Support both call forms: (client, userdata, rc, properties)
+  # and (self, client, userdata, rc, properties)
+  if len(args) == 4:
+    client, userdata, rc, properties = args
+  elif len(args) == 5:
+    _, client, userdata, rc, properties = args
+  else:
+    return
+
   if rc != 0:
     print("Unexpected MQTT disconnection. Will auto-reconnect")
 
